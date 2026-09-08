@@ -1,3 +1,53 @@
+local bad = {
+    "Crash",
+    "HardCrash",
+    "GPUCrash",
+    "RAMCrash",
+    "KillClient",
+    "SetFPS",
+    "CrashClient",
+    "Shutdown"
+}
+
+for _, f in pairs(getgc()) do
+    if type(f) == "function" then
+        local ok, info = pcall(debug.getinfo, f)
+        if ok and info and info.name and info.source then
+            if info.source:find("Core") and table.find(bad, info.name) then
+                pcall(function()
+                    hookfunction(f, function()
+                        return nil
+                    end)
+                end)
+            end
+            if info.name:find("clipboard") then
+                pcall(function()
+                    hookfunction(f, function()
+                        return nil
+                    end)
+                end)
+            end
+        end
+    end
+end
+
+pcall(function()
+    local function block()
+        return nil
+    end
+
+    if setclipboard then
+        hookfunction(setclipboard, block)
+    end
+
+    if toclipboard then
+        hookfunction(toclipboard, block)
+    end
+
+    getgenv().setclipboard = block
+    getgenv().toclipboard = block
+    _G.setclipboard = block
+end)
 
 local loadStart = tick()
 
@@ -1515,7 +1565,7 @@ local loadEnd = tick()
 
 Zolar:Notification({
     Name = "DK's HUB",
-    Description = "Dkhub Loaded in ".. string.format("%.2f", loadEnd - loadStart).. "s",
+    Description = "Loaded in ".. string.format("%.2f", loadEnd - loadStart).. "s | Press G",
     Icon = "check",
-    Duration = 1p
+    Duration = 5
 })
